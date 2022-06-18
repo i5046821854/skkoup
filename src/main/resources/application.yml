@@ -17,6 +17,21 @@ spring:
   redis:
     host: localhost
     port: 6379
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: o5046821854@gmail.com
+    password: pwkheqwgxrgsdfdb
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 logging:
   level:
     org.hibernate.SQL: debug

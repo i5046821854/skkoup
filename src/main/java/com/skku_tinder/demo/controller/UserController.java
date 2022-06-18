@@ -8,6 +8,7 @@ import com.skku_tinder.demo.dto.TokenDto;
 import com.skku_tinder.demo.dto.TokenReqDto;
 import com.skku_tinder.demo.repository.UserRepository;
 import com.skku_tinder.demo.security.JwtTokenProvider;
+import com.skku_tinder.demo.service.EmailService;
 import com.skku_tinder.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpRequest;
@@ -25,6 +26,7 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final EmailService emailService;
 
     // 회원가입
     @PostMapping("/join")
@@ -40,6 +42,24 @@ public class UserController {
         return js.toString();
 
     }
+
+    @PostMapping("/emailAuth")
+    public String sendEmail(@RequestBody Map<String, String> req)
+    {
+        String address = req.get("address");
+        emailService.sendEmail(address);
+        System.out.println(address);
+        return "success";
+    }
+
+    @PostMapping("/checkAuth")
+    public String checkAuth(@RequestBody Map<String, String> req)
+    {
+        String num = req.get("auth");
+        String result = emailService.authValidate(num);
+        return result;
+    }
+
 
 //    //로그아웃
 //    @GetMapping("/logout")
@@ -83,6 +103,5 @@ public class UserController {
     {
         return "hello";
     }
-
 
 }
