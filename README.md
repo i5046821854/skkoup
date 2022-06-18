@@ -1,2 +1,0 @@
-# skku_tinder
- 
