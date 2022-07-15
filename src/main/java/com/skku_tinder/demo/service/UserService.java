@@ -6,6 +6,7 @@ import com.skku_tinder.demo.dto.LoginResDto;
 import com.skku_tinder.demo.dto.SignupReqDto;
 import com.skku_tinder.demo.dto.TokenDto;
 import com.skku_tinder.demo.dto.TokenReqDto;
+import com.skku_tinder.demo.exception.UserAuthException;
 import com.skku_tinder.demo.repository.RefreshTokenJpaRepo;
 import com.skku_tinder.demo.repository.UserRepository;
 import com.skku_tinder.demo.security.JwtTokenProvider;
@@ -66,7 +67,6 @@ public class UserService {
                 .build();
         refreshTokenJpaRepo.save(refreshToken); */
         redisTemplate.opsForValue().set("RT:"+user.getId(), tokenDto.getRefreshToken(), tokenDto.getRefreshTokenExpireDate(), TimeUnit.MILLISECONDS);
-        System.out.println("RT:"+user.getId());
         return tokenDto;
     }
 
@@ -134,6 +134,7 @@ public class UserService {
     }
 
     public TokenDto login(String username, String password){
+        System.out.println(username + " " + password);
         User member = userRepository.findByUsername(username)
                 .orElseThrow(() -> {throw new IllegalArgumentException("가입되지 않은 아이디입니다.");});
         if (!passwordEncoder.matches(password, member.getPassword())) {
@@ -189,4 +190,20 @@ public class UserService {
         return "success";
     }
 
+    //자동 로그인
+    public TokenDto Autologin(String accessToken) {
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+        User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+        if(jwtTokenProvider.validateToken(accessToken))
+            return makeToken(user);
+        else
+        {
+            String userId = String.valueOf(user.getId());
+            String refreshToken = redisTemplate.opsForValue().get("RT:" + userId);
+            if(refreshToken != null)
+                return reissue(TokenReqDto.builder().refreshToken(refreshToken).accessToken(accessToken).build());
+            else
+                throw new UserAuthException("로그인 세션이 만료되었습니다");
+        }
+    }
 }

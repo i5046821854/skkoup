@@ -1,5 +1,6 @@
 package com.skku_tinder.demo.security;
 
+import com.skku_tinder.demo.exception.UserAuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
@@ -28,14 +29,19 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         // 유효한 토큰인지 확인합니다.
         if (token != null && jwtTokenProvider.validateToken(token)) {
             String logout = redisTemplate.opsForValue().get(token);
-            System.out.println("여기까찌@@@ / logout : " + logout);
             if(ObjectUtils.isEmpty(logout)) {   //로그아웃되지 않았을 경우
                 // 토큰이 유효하면 토큰으로부터 유저 정보를 받아옵니다.
                 Authentication authentication = jwtTokenProvider.getAuthentication(token);
                 // SecurityContext 에 Authentication 객체를 저장합니다.
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+            else
+            {
+                System.out.println("baya");
+                request.setAttribute("exception", "만료된 세션입니다");
+            }
         }
         chain.doFilter(request, response);
     }
+
 }
